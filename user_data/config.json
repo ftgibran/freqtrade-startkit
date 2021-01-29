@@ -1,12 +1,12 @@
 {
     "max_open_trades": 12,
     "stake_currency": "USDT",
-    "stake_amount": 100,
-    "tradable_balance_ratio": 0.20,
+    "stake_amount": "unlimited",
+    "tradable_balance_ratio": 0.50,
     "fiat_display_currency": "USD",
     "timeframe": "5m",
     "dry_run": true,
-    "dry_run_wallet": 5000,
+    "dry_run_wallet": 1000,
     "cancel_open_orders_on_exit": false,
     "unfilledtimeout": {
         "buy": 10,
@@ -46,9 +46,15 @@
             "BAT/USDT",
             "BCH/USDT",
             "EOS/USDT",
+            "FTM/USDT",
             "IOTA/USDT",
             "LINK/USDT",
+            "LUNA/USDT",
+            "NANO/USDT",
             "NEO/USDT",
+            "ONE/USDT",
+            "SC/USDT",
+            "TROY/USDT",
             "XMR/USDT"
         ],
         "pair_blacklist": [

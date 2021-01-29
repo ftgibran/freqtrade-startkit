@@ -14,7 +14,7 @@ import freqtrade.vendor.qtpylib.indicators as qtpylib
 
 
 # This class is a sample. Feel free to customize it.
-class MyStrategy(IStrategy):
+class StandardStrategy(IStrategy):
     """
     This is a sample strategy to inspire you.
     More information in https://github.com/freqtrade/freqtrade/blob/develop/docs/bot-optimization.md
