@@ -36,6 +36,7 @@ chmod +x /usr/local/bin/docker-compose
 ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
 
 su - ec2-user
+cd /home/ec2-user/
 
 # Gets EC2 instance Tags
 get_instance_tags () {
