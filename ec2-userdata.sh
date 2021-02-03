@@ -7,6 +7,7 @@
 #  - EXCHANGE_NAME default: binance
 #  - EXCHANGE_KEY
 #  - EXCHANGE_SECRET
+#  - FIAT_DISPLAY_CURRENCY default: USD
 #  - STARTKIT_REPOSITORY_URL default: https://github.com/ftgibran/freqtrade-startkit.git
 #  - STRATEGY default: StandardStrategy
 #  - DRY_RUN default: true
@@ -96,6 +97,8 @@ jq '.exchange.secret = $newVal' --arg newVal ${EXCHANGE_SECRET:-''} config.json 
 
 jq '.telegram.token = $newVal' --arg newVal ${TELEGRAM_TOKEN:-''} config.json > tmp.$$.json && mv -f tmp.$$.json config.json
 jq '.telegram.chat_id = $newVal' --arg newVal ${TELEGRAM_CHAT_ID:-''} config.json > tmp.$$.json && mv -f tmp.$$.json config.json
+
+jq '.fiat_display_currency = $newVal' --arg newVal ${FIAT_DISPLAY_CURRENCY:-'USD'} config.json > tmp.$$.json && mv -f tmp.$$.json config.json
 
 jq '.dry_run = $newVal' --argjson newVal ${DRY_RUN:-true} config.json > tmp.$$.json && mv -f tmp.$$.json config.json
 jq '.dry_run_wallet = $newVal' --argjson newVal ${DRY_RUN_WALLET:-1000} config.json > tmp.$$.json && mv -f tmp.$$.json config.json

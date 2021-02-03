@@ -521,9 +521,9 @@ PLOT_PATH=$(find ./user_data/plot -maxdepth 1 -name '*.html')
 PLOT_NAME=$(basename $PLOT_PATH)
 mv -f $PLOT_PATH "./user_data/plot/2021-01/$PLOT_NAME"
 
+# Summary
+freqtrade backtesting -s $STRATEGY --timerange 20170801-20210131
+
 # Delete data cache
 rm -rf ./user_data/data
 mkdir -p ./user_data/data
-
-# Summary
-freqtrade backtesting -s $STRATEGY --timerange 20170801-20210131
