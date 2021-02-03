@@ -56,8 +56,8 @@ class StandardStrategy(IStrategy):
 
     # Optional order type mapping.
     order_types = {
-        'buy': 'limit',
-        'sell': 'limit',
+        'buy': 'market',
+        'sell': 'market',
         'stoploss': 'market',
         'stoploss_on_exchange': True
     }
