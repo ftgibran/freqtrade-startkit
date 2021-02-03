@@ -22,12 +22,12 @@ class StandardStrategy(IStrategy):
     # Minimal ROI designed for the strategy.
     # This attribute will be overridden if the config file contains "minimal_roi".
     minimal_roi = {
-        "1440": 0.01,
-        "720": 0.05,
-        "360": 0.1,
-        "180": 0.15,
-        "90": 0.2,
-        "0": 0.25
+        "1440": 0.05,
+        "720": 0.10,
+        "360": 0.20,
+        "180": 0.30,
+        "90": 0.40,
+        "0": 0.50
     }
 
     # Optimal stoploss designed for the strategy.
@@ -36,9 +36,9 @@ class StandardStrategy(IStrategy):
 
     # Trailing stoploss
     trailing_stop = True
-    # trailing_only_offset_is_reached = False
-    # trailing_stop_positive = 0.01
-    # trailing_stop_positive_offset = 0.02  # Disabled / not configured
+    trailing_only_offset_is_reached = True
+    trailing_stop_positive = 0.01
+    trailing_stop_positive_offset = 0.05  # Disabled / not configured
 
     # Optimal ticker interval for the strategy.
     timeframe = '5m'
@@ -121,9 +121,8 @@ class StandardStrategy(IStrategy):
     def populate_buy_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
         dataframe.loc[
             (
-                (dataframe['rsi'] <= 50) & # Signal: RSI crosses above 30
-                ((dataframe['low'] <= dataframe['bb_lowerband']) |
-                (dataframe['low'] <= dataframe['bb_lowerband'])) &
+                (dataframe['rsi'] <= 50) &  # Signal: RSI crosses above 30
+                (dataframe['low'] <= dataframe['bb_lowerband']) &
                 (dataframe['volume'] > 0)  # Make sure Volume is not 0
             ),
             'buy'] = 1
@@ -132,11 +131,6 @@ class StandardStrategy(IStrategy):
 
     def populate_sell_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
         dataframe.loc[
-            (
-                # (qtpylib.crossed_above(dataframe['rsi'], 70)) &  # Signal: RSI crosses above 70
-                # (dataframe['tema'] > dataframe['bb_middleband']) &  # Guard: tema above BB middle
-                # (dataframe['close'] > dataframe['bb_upperband']) &
-                # (dataframe['volume'] > 1000)  # Make sure Volume is not 0
-            ),
+            (),
             'sell'] = 1
         return dataframe
