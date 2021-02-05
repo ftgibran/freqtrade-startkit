@@ -13,7 +13,6 @@ import talib.abstract as ta
 import freqtrade.vendor.qtpylib.indicators as qtpylib
 
 
-# This class is a sample. Feel free to customize it.
 class StandardStrategy(IStrategy):
     # Strategy interface version - allow new iterations of the strategy interface.
     # Check the documentation or the Sample strategy to get the latest version.
@@ -22,12 +21,7 @@ class StandardStrategy(IStrategy):
     # Minimal ROI designed for the strategy.
     # This attribute will be overridden if the config file contains "minimal_roi".
     minimal_roi = {
-        "1440": 0.05,
-        "720": 0.10,
-        "360": 0.20,
-        "180": 0.30,
-        "90": 0.40,
-        "0": 0.50
+        "0": 100
     }
 
     # Optimal stoploss designed for the strategy.
@@ -38,7 +32,7 @@ class StandardStrategy(IStrategy):
     trailing_stop = True
     trailing_only_offset_is_reached = True
     trailing_stop_positive = 0.01
-    trailing_stop_positive_offset = 0.05  # Disabled / not configured
+    trailing_stop_positive_offset = 0.05
 
     # Optimal ticker interval for the strategy.
     timeframe = '5m'
@@ -53,6 +47,10 @@ class StandardStrategy(IStrategy):
 
     # Number of candles the strategy requires before producing valid signals
     startup_candle_count: int = 20
+
+    # It will protect your strategy from unexpected events and market conditions by temporarily stop trading
+    # for either one pair, or for all pairs.
+    protections = []
 
     # Optional order type mapping.
     order_types = {
@@ -121,7 +119,7 @@ class StandardStrategy(IStrategy):
     def populate_buy_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
         dataframe.loc[
             (
-                (dataframe['rsi'] <= 50) &  # Signal: RSI crosses above 30
+                (dataframe['rsi'] <= 50) &
                 (dataframe['low'] <= dataframe['bb_lowerband']) &
                 (dataframe['volume'] > 0)  # Make sure Volume is not 0
             ),
