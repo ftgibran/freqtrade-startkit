@@ -4,7 +4,6 @@
     "stake_amount": "unlimited",
     "tradable_balance_ratio": 0.99,
     "fiat_display_currency": "USD",
-    "timeframe": "5m",
     "dry_run": true,
     "dry_run_wallet": 1000,
     "cancel_open_orders_on_exit": false,
@@ -26,10 +25,7 @@
         "price_side": "ask",
         "use_order_book": false,
         "order_book_min": 1,
-        "order_book_max": 1,
-        "use_sell_signal": true,
-        "sell_profit_only": false,
-        "ignore_roi_if_buy_signal": false
+        "order_book_max": 1
     },
     "exchange": {
         "name": "binance",
@@ -40,115 +36,43 @@
             "enableRateLimit": true,
             "rateLimit": 200
         },
-        "pair_whitelist": [
-            "BTC/BUSD",
-            "ETH/BUSD",
-            "AAVE/BUSD",
-            "ADA/BUSD",
-            "ALGO/BUSD",
-            "ALPHA/BUSD",
-            "ANT/BUSD",
-            "ATOM/BUSD",
-            "AVA/BUSD",
-            "BAT/BUSD",
-            "BCH/BUSD",
-            "BEL/BUSD",
-            "BNT/BUSD",
-            "BTT/BUSD",
-            "COMP/BUSD",
-            "CRV/BUSD",
-            "CTK/BUSD",
-            "CTSI/BUSD",
-            "DASH/BUSD",
-            "DATA/BUSD",
-            "DGB/BUSD",
-            "DOT/BUSD",
-            "ENJ/BUSD",
-            "EOS/BUSD",
-            "ETC/BUSD",
-            "FIL/BUSD",
-            "HBAR/BUSD",
-            "INJ/BUSD",
-            "IOTA/BUSD",
-            "KMD/BUSD",
-            "LINK/BUSD",
-            "LRC/BUSD",
-            "LTC/BUSD",
-            "LUNA/BUSD",
-            "MANA/BUSD",
-            "MKR/BUSD",
-            "NANO/BUSD",
-            "NEO/BUSD",
-            "NMR/BUSD",
-            "OCEAN/BUSD",
-            "ONT/BUSD",
-            "QTUM/BUSD",
-            "ROSE/BUSD",
-            "RUNE/BUSD",
-            "SAND/BUSD",
-            "SNX/BUSD",
-            "SOL/BUSD",
-            "SUSHI/BUSD",
-            "SXP/BUSD",
-            "TRB/BUSD",
-            "TRX/BUSD",
-            "UNI/BUSD",
-            "VET/BUSD",
-            "WAVES/BUSD",
-            "WING/BUSD",
-            "XLM/BUSD",
-            "XMR/BUSD",
-            "XTZ/BUSD",
-            "YFI/BUSD",
-            "ZIL/BUSD"
-        ],
+        "pair_whitelist": [],
         "pair_blacklist": [
-            "BNB/BTC",
-            "BNB/BUSD",
-            "BNB/ETH",
-            "BNB/EUR",
-            "BNB/NGN",
-            "BNB/PAX",
-            "BNB/RUB",
-            "BNB/TRY",
-            "BNB/TUSD",
-            "BNB/USDC",
-            "BNB/USDS",
-            "BNB/USDT",
-            "BNB/<STAKE>"
+            "\\S+(?:UP|DOWN|BULL|BEAR|HEDGE)\\/\\S+",
+            "BNB\\/\\S+"
         ]
     },
     "pairlists": [
-        {"method": "StaticPairList"}
+        {
+            "method": "VolumePairList",
+            "number_assets": 100,
+            "sort_key": "quoteVolume"
+        },
+        {
+            "method": "PerformanceFilter"
+        },
+        {
+            "method": "PrecisionFilter"
+        },
+        {
+            "method": "AgeFilter",
+            "min_days_listed": 120
+        },
+        {
+            "method": "PriceFilter",
+            "min_price": 0.01
+        },
+        {
+            "method": "RangeStabilityFilter",
+            "lookback_days": 10,
+            "min_rate_of_change": 0.1,
+            "refresh_period": 1440
+        }
     ],
-    "edge": {
-        "enabled": false,
-        "process_throttle_secs": 3600,
-        "calculate_since_number_of_days": 7,
-        "allowed_risk": 0.01,
-        "stoploss_range_min": -0.01,
-        "stoploss_range_max": -0.1,
-        "stoploss_range_step": -0.01,
-        "minimum_winrate": 0.60,
-        "minimum_expectancy": 0.20,
-        "min_trade_number": 10,
-        "max_trade_duration_minute": 1440,
-        "remove_pumps": false
-    },
     "telegram": {
         "enabled": true,
         "token": "",
         "chat_id": ""
-    },
-    "api_server": {
-        "enabled": false,
-        "listen_ip_address": "127.0.0.1",
-        "listen_port": 8080,
-        "verbosity": "info",
-        "jwt_secret_key": "somethingrandom",
-        "CORS_origins": [],
-        "username": "",
-        "password": ""
     },
     "initial_state": "running",
     "forcebuy_enable": false,

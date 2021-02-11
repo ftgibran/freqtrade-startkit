@@ -31,8 +31,8 @@ class StandardStrategy(IStrategy):
     # Trailing stoploss
     trailing_stop = True
     trailing_only_offset_is_reached = True
-    trailing_stop_positive = 0.01
     trailing_stop_positive_offset = 0.05
+    trailing_stop_positive = 0.01
 
     # Optimal ticker interval for the strategy.
     timeframe = '5m'
@@ -50,7 +50,12 @@ class StandardStrategy(IStrategy):
 
     # It will protect your strategy from unexpected events and market conditions by temporarily stop trading
     # for either one pair, or for all pairs.
-    protections = []
+    protections = [
+        {
+            "method": "CooldownPeriod",
+            "stop_duration_candles": 12 * 6  # 6 hours
+        },
+    ]
 
     # Optional order type mapping.
     order_types = {
@@ -87,7 +92,10 @@ class StandardStrategy(IStrategy):
 
     def populate_indicators(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
         # RSI
-        dataframe['rsi'] = ta.RSI(dataframe, timeperiod=21)
+        dataframe['rsi'] = ta.RSI(dataframe, timeperiod=7)
+
+        # TEMA - Triple Exponential Moving Average
+        dataframe['tema'] = ta.TEMA(dataframe, timeperiod=12)
 
         # Overlap Studies
         # ------------------------------------
@@ -119,9 +127,10 @@ class StandardStrategy(IStrategy):
     def populate_buy_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
         dataframe.loc[
             (
-                (dataframe['rsi'] <= 50) &
-                (dataframe['low'] <= dataframe['bb_lowerband']) &
-                (dataframe['volume'] > 0)  # Make sure Volume is not 0
+                (qtpylib.crossed_above(dataframe['rsi'], 30)) &
+                (dataframe['tema'] > dataframe['tema'].shift(1)) &
+                (dataframe['tema'] < dataframe['bb_middleband']) &
+                (dataframe['volume'] > 0)
             ),
             'buy'] = 1
 
@@ -129,6 +138,6 @@ class StandardStrategy(IStrategy):
 
     def populate_sell_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
         dataframe.loc[
-            (),
-            'sell'] = 1
+        (),
+        'sell'] = 1
         return dataframe
