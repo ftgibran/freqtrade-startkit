@@ -1,5 +1,5 @@
 {
-    "max_open_trades": 60,
+    "max_open_trades": 10,
     "stake_currency": "BUSD",
     "stake_amount": "unlimited",
     "tradable_balance_ratio": 0.99,
@@ -45,7 +45,7 @@
     "pairlists": [
         {
             "method": "VolumePairList",
-            "number_assets": 100,
+            "number_assets": 20,
             "sort_key": "quoteVolume"
         },
         {
