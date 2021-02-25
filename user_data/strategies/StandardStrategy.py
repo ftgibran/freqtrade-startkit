@@ -69,6 +69,7 @@ class StandardStrategy(IStrategy):
     plot_config = {
         'main_plot': {
             'tema': {},
+            'ema7': {},
             'sar': {'color': 'white'},
         },
         'subplots': {
@@ -94,6 +95,9 @@ class StandardStrategy(IStrategy):
 
         # TEMA - Triple Exponential Moving Average
         dataframe['tema'] = ta.TEMA(dataframe, timeperiod=9)
+
+        # EMA - Exponential Moving Average
+        dataframe['ema7'] = ta.EMA(dataframe, timeperiod=7)
 
         # Bollinger Bands
         bollinger = qtpylib.bollinger_bands(qtpylib.typical_price(dataframe), window=20, stds=2)
@@ -132,7 +136,9 @@ class StandardStrategy(IStrategy):
         dataframe.loc[
             (
                     (dataframe['tema'] > dataframe['sar']) &
-                    (qtpylib.crossed_above(dataframe['rsi'], 70)) &
+                    (dataframe['rsi'] > 70) &
+                    (dataframe['rsi'] < 90) &
+                    (dataframe['rsi'] > dataframe['rsi'].shift(1)) &
                     ((dataframe['bb_width_past_1'] / dataframe['bb_width_past_2']) > 0.975) &
                     ((dataframe['bb_width_past_2'] / dataframe['bb_width_past_1']) < 1.0257) &
                     ((dataframe['bb_width_past_2'] / dataframe['bb_width_past_3']) > 0.975) &
@@ -142,7 +148,7 @@ class StandardStrategy(IStrategy):
                     ((dataframe['bb_width_past_4'] / dataframe['bb_width_past_5']) > 0.975) &
                     ((dataframe['bb_width_past_5'] / dataframe['bb_width_past_4']) < 1.0257) &
                     (dataframe['bb_width'] / dataframe['bb_width_past_1'] > 1.14) &
-                    (dataframe['bb_width'] / dataframe['bb_width_past_1'] < 1.30) &
+                    (dataframe['bb_width'] / dataframe['bb_width_past_1'] < 2.00) &
                     (dataframe['volume'] > 0)
             ),
             'buy'] = 1
@@ -153,7 +159,8 @@ class StandardStrategy(IStrategy):
         dataframe.loc[
             (
                     (dataframe['tema'] < dataframe['sar']) &
-                    (dataframe['bb_width_past_1'] / dataframe['bb_width'] > 1.40) &
+                    (qtpylib.crossed_above(dataframe['ema7'], dataframe['tema'])) &
+                    (dataframe['bb_width_past_1'] / dataframe['bb_width'] > 1.20) &
                     (dataframe['volume'] > 0)
             ),
             'sell'] = 1

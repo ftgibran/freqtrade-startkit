@@ -45,7 +45,7 @@
     "pairlists": [
         {
             "method": "VolumePairList",
-            "number_assets": 30,
+            "number_assets": 50,
             "sort_key": "quoteVolume"
         },
         {
@@ -75,7 +75,7 @@
         "chat_id": ""
     },
     "initial_state": "running",
-    "forcebuy_enable": false,
+    "forcebuy_enable": true,
     "internals": {
         "process_throttle_secs": 5
     }
