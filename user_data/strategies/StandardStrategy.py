@@ -21,7 +21,7 @@ class StandardStrategy(IStrategy):
     # Minimal ROI designed for the strategy.
     # This attribute will be overridden if the config file contains "minimal_roi".
     minimal_roi = {
-        "0": 100
+        '0': 100
     }
 
     # Optimal stoploss designed for the strategy.
@@ -73,11 +73,11 @@ class StandardStrategy(IStrategy):
             'sar': {'color': 'white'},
         },
         'subplots': {
-            "MACD": {
+            'MACD': {
                 'macd': {'color': 'blue'},
                 'macdsignal': {'color': 'orange'},
             },
-            "RSI": {
+            'RSI': {
                 'rsi': {'color': 'red'},
             }
         }
@@ -106,28 +106,28 @@ class StandardStrategy(IStrategy):
         dataframe['bb_middleband'] = bollinger['mid']
         dataframe['bb_upperband'] = bollinger['upper']
 
-        dataframe["bb_width"] = (
-                (dataframe["bb_upperband"] - dataframe["bb_lowerband"]) / dataframe["bb_middleband"]
+        dataframe['bb_width'] = (
+                (dataframe['bb_upperband'] - dataframe['bb_lowerband']) / dataframe['bb_middleband']
         )
 
-        dataframe["bb_width_past_1"] = (
-                (dataframe["bb_upperband"].shift(1) - dataframe["bb_lowerband"].shift(1)) / dataframe["bb_middleband"].shift(1)
+        dataframe['bb_width_past_1'] = (
+                (dataframe['bb_upperband'].shift(1) - dataframe['bb_lowerband'].shift(1)) / dataframe['bb_middleband'].shift(1)
         )
 
-        dataframe["bb_width_past_2"] = (
-                (dataframe["bb_upperband"].shift(2) - dataframe["bb_lowerband"].shift(2)) / dataframe["bb_middleband"].shift(2)
+        dataframe['bb_width_past_2'] = (
+                (dataframe['bb_upperband'].shift(2) - dataframe['bb_lowerband'].shift(2)) / dataframe['bb_middleband'].shift(2)
         )
 
-        dataframe["bb_width_past_3"] = (
-                (dataframe["bb_upperband"].shift(3) - dataframe["bb_lowerband"].shift(3)) / dataframe["bb_middleband"].shift(3)
+        dataframe['bb_width_past_3'] = (
+                (dataframe['bb_upperband'].shift(3) - dataframe['bb_lowerband'].shift(3)) / dataframe['bb_middleband'].shift(3)
         )
 
-        dataframe["bb_width_past_4"] = (
-                (dataframe["bb_upperband"].shift(4) - dataframe["bb_lowerband"].shift(4)) / dataframe["bb_middleband"].shift(4)
+        dataframe['bb_width_past_4'] = (
+                (dataframe['bb_upperband'].shift(4) - dataframe['bb_lowerband'].shift(4)) / dataframe['bb_middleband'].shift(4)
         )
 
-        dataframe["bb_width_past_5"] = (
-                (dataframe["bb_upperband"].shift(5) - dataframe["bb_lowerband"].shift(5)) / dataframe["bb_middleband"].shift(5)
+        dataframe['bb_width_past_5'] = (
+                (dataframe['bb_upperband'].shift(5) - dataframe['bb_lowerband'].shift(5)) / dataframe['bb_middleband'].shift(5)
         )
 
         return dataframe

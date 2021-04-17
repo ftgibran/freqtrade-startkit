@@ -13,6 +13,9 @@
 #  - STRATEGY default: StandardStrategy
 #  - DRY_RUN default: true
 #  - DRY_RUN_WALLET default: 1000
+#  - PROCESS_THROTTLE_SECS: 5
+#  - WEBHOOK_MODE: false
+#  - WEBHOOK_URL
 
 echo "export LC_ALL=en_US.UTF-8" >> ~/.bash_profile
 echo "export LANG=en_US.UTF-8" >> ~/.bash_profile
@@ -75,7 +78,11 @@ cd ft_userdata/
 curl https://raw.githubusercontent.com/freqtrade/freqtrade/stable/docker-compose.yml -o docker-compose.yml
 
 # Change strategy according to STRATEGY environment variable
-sed -i "s/\(.*--strategy .*\)/      --strategy ${STRATEGY:-StandardStrategy}/g" ./docker-compose.yml
+if [ ${WEBHOOK_MODE:-false} = true ]; then
+    sed -i "s/\(.*--strategy .*\)/      --strategy Webhook/g" ./docker-compose.yml
+else
+    sed -i "s/\(.*--strategy .*\)/      --strategy ${STRATEGY:-StandardStrategy}/g" ./docker-compose.yml
+fi
 
 # Pull the freqtrade image
 docker-compose pull
@@ -105,6 +112,15 @@ jq '.fiat_display_currency = $newVal' --arg newVal ${FIAT_DISPLAY_CURRENCY:-'USD
 jq '.dry_run = $newVal' --argjson newVal ${DRY_RUN:-true} config.json > tmp.$$.json && mv -f tmp.$$.json config.json
 jq '.dry_run_wallet = $newVal' --argjson newVal ${DRY_RUN_WALLET:-1000} config.json > tmp.$$.json && mv -f tmp.$$.json config.json
 
-cd ../
+jq '.internals.process_throttle_secs = $newVal' --argjson newVal ${PROCESS_THROTTLE_SECS:-5} config.json > tmp.$$.json && mv -f tmp.$$.json config.json
+
+cd ./strategies
+
+if [ ${WEBHOOK_MODE:-false} = true ]; then
+    sed -i "s/# use your own webhook/'${WEBHOOK_URL:-''}'/g" ./Webhook.py
+    sed -i "s/StandardStrategy/${STRATEGY:-StandardStrategy}/g" ./Webhook.py
+fi
+
+cd ../../
 
 docker-compose up -d
