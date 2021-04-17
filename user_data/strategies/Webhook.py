@@ -10,6 +10,7 @@ from freqtrade.strategy.interface import IStrategy
 # --------------------------------
 # Add your lib to import here
 import requests
+import datetime
 import talib.abstract as ta
 import freqtrade.vendor.qtpylib.indicators as qtpylib
 import sys
@@ -103,8 +104,15 @@ class Webhook(StandardStrategy):
         }
 
         try:
-            for url in self.webhook_urls:
-                requests.post(url, json=data)
+            now = datetime.datetime.now()
+            future_1hour = now + datetime.timedelta(hours=1)
+
+            # send once per hour
+            if not 'next_webhook' in self.custom_info[pair] or now > self.custom_info[pair]['next_webhook']:
+                for url in self.webhook_urls:
+                    requests.post(url, json=data)
+
+                self.custom_info[pair]['next_webhook'] = future_1hour
         except Exception:
             pass
 

@@ -117,8 +117,9 @@ jq '.internals.process_throttle_secs = $newVal' --argjson newVal ${PROCESS_THROT
 cd ./strategies
 
 if [ ${WEBHOOK_MODE:-false} = true ]; then
-    sed -i "s/# use your own webhook/'${WEBHOOK_URL:-''}'/g" ./Webhook.py
-    sed -i "s/StandardStrategy/${STRATEGY:-StandardStrategy}/g" ./Webhook.py
+    sed -i -- "s/# use your own webhook/'${WEBHOOK_URL:-}'/g" ./Webhook.py
+    sed -i -- "s/StandardStrategy/${STRATEGY:-StandardStrategy}/g" ./Webhook.py
+    rm -f ./Webhook.py--
 fi
 
 cd ../../
