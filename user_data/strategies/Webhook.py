@@ -40,7 +40,7 @@ class Webhook(StandardStrategy):
         self.custom_info[metadata["pair"]]["close"] = dataframe["close"]
         self.custom_info[metadata["pair"]]["volume"] = dataframe["volume"]
 
-        return super(TestStrategyWebhook, self).populate_indicators(dataframe, metadata)
+        return super(Webhook, self).populate_indicators(dataframe, metadata)
 
     def populate_sell_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
         dataframe.loc[(), 'sell'] = 1
