@@ -87,16 +87,11 @@ fi
 # Pull the freqtrade image
 docker-compose pull
 
-# Create user directory structure
-docker-compose run --rm freqtrade create-userdir --userdir user_data
+# Copy user_data dir from startkit
+cp -Rf ../startkit/user_data ./user_data/
+rm -rf ../startkit
 
 cd user_data
-
-# Copy config.json and strategies dir from startkit
-cp -f ../../startkit/user_data/config.json ./config.json
-rm -rf ./strategies
-cp -Rf ../../startkit/user_data/strategies ./strategies/
-rm -rf ../../startkit
 
 # Apply environment variables config.json
 jq '.exchange.name = $newVal' --arg newVal ${EXCHANGE_NAME:-binance} config.json > tmp.$$.json && mv -f tmp.$$.json config.json
