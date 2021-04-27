@@ -39,7 +39,9 @@
         "pair_whitelist": [],
         "pair_blacklist": [
             "\\S+(?:UP|DOWN|BULL|BEAR|HEDGE)\\/\\S+",
-            "BNB\\/\\S+"
+            "BNB\\/\\S+",
+            "EUR/BUSD",
+            "GBP/BUSD"
         ]
     },
     "pairlists": [
