@@ -22,7 +22,7 @@ from StandardStrategy import StandardStrategy
 
 class Webhook(StandardStrategy):
     # Create custom dictionary
-    custom_info = {}
+    custom_webhook_info = {}
 
     webhook_urls = [
         # use your own webhook
@@ -30,28 +30,28 @@ class Webhook(StandardStrategy):
 
     def populate_indicators(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
         # Check if the entry already exists
-        if not metadata["pair"] in self.custom_info:
+        if not metadata["pair"] in self.custom_webhook_info:
             # Create empty entry for this pair
-            self.custom_info[metadata["pair"]] = {}
+            self.custom_webhook_info[metadata["pair"]] = {}
 
-        self.custom_info[metadata["pair"]]["open"] = dataframe["open"]
-        self.custom_info[metadata["pair"]]["high"] = dataframe["high"]
-        self.custom_info[metadata["pair"]]["low"] = dataframe["low"]
-        self.custom_info[metadata["pair"]]["close"] = dataframe["close"]
-        self.custom_info[metadata["pair"]]["volume"] = dataframe["volume"]
+        self.custom_webhook_info[metadata["pair"]]["open"] = dataframe["open"]
+        self.custom_webhook_info[metadata["pair"]]["high"] = dataframe["high"]
+        self.custom_webhook_info[metadata["pair"]]["low"] = dataframe["low"]
+        self.custom_webhook_info[metadata["pair"]]["close"] = dataframe["close"]
+        self.custom_webhook_info[metadata["pair"]]["volume"] = dataframe["volume"]
 
-        return super(Webhook, self).populate_indicators(dataframe, metadata)
+        return super(TestStrategyWebhook, self).populate_indicators(dataframe, metadata)
 
     def populate_sell_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
         dataframe.loc[(), 'sell'] = 1
         return dataframe
 
     def confirm_trade_entry(self, pair: str, order_type: str, amount: float, rate: float, time_in_force: str, **kwargs) -> bool:
-        open = self.custom_info[pair]['open']
-        high = self.custom_info[pair]['high']
-        low = self.custom_info[pair]['low']
-        close = self.custom_info[pair]['close']
-        volume = self.custom_info[pair]['volume']
+        open = self.custom_webhook_info[pair]['open']
+        high = self.custom_webhook_info[pair]['high']
+        low = self.custom_webhook_info[pair]['low']
+        close = self.custom_webhook_info[pair]['close']
+        volume = self.custom_webhook_info[pair]['volume']
 
         coin = pair.split('/')[0]
         stake = pair.split('/')[1]
@@ -108,11 +108,11 @@ class Webhook(StandardStrategy):
             future_1hour = now + datetime.timedelta(hours=1)
 
             # send once per hour
-            if not 'next_webhook' in self.custom_info[pair] or now > self.custom_info[pair]['next_webhook']:
+            if not 'next_webhook' in self.custom_webhook_info[pair] or now > self.custom_webhook_info[pair]['next_webhook']:
                 for url in self.webhook_urls:
                     requests.post(url, json=data)
 
-                self.custom_info[pair]['next_webhook'] = future_1hour
+                self.custom_webhook_info[pair]['next_webhook'] = future_1hour
         except Exception:
             pass
 

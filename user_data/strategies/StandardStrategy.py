@@ -6,9 +6,13 @@ import pandas as pd  # noqa
 from pandas import DataFrame
 
 from freqtrade.strategy.interface import IStrategy
+from freqtrade.strategy import merge_informative_pair
 
 # --------------------------------
 # Add your lib to import here
+from datetime import datetime, timedelta
+from freqtrade.persistence import Trade
+from freqtrade.strategy import stoploss_from_open
 import talib.abstract as ta
 import freqtrade.vendor.qtpylib.indicators as qtpylib
 
@@ -17,6 +21,12 @@ class StandardStrategy(IStrategy):
     # Strategy interface version - allow new iterations of the strategy interface.
     # Check the documentation or the Sample strategy to get the latest version.
     INTERFACE_VERSION = 2
+
+    # Represent the most dominant pair which can represent the best influence of market cap
+    MARKET_CAP_REFERENCE_PAIR = 'BTC/USDT'
+
+    # Create custom dictionary
+    custom_info = {}
 
     # Minimal ROI designed for the strategy.
     # This attribute will be overridden if the config file contains "minimal_roi".
@@ -29,10 +39,7 @@ class StandardStrategy(IStrategy):
     stoploss = -0.30
 
     # Trailing stoploss
-    # trailing_stop = True
-    # trailing_only_offset_is_reached = True
-    # trailing_stop_positive_offset = 0.50
-    # trailing_stop_positive = 0.40
+    use_custom_stoploss = True
 
     # Optimal ticker interval for the strategy.
     timeframe = '1h'
@@ -83,10 +90,101 @@ class StandardStrategy(IStrategy):
         }
     }
 
+    def custom_stoploss(self, pair: str, trade: 'Trade', current_time: datetime,
+                        current_rate: float, current_profit: float, **kwargs) -> float:
+        is_bull_market = True
+
+        if self.custom_info and self.MARKET_CAP_REFERENCE_PAIR in self.custom_info and trade:
+            # using current_time directly (like below) will only work in backtesting.
+            # so check "runmode" to make sure that it's only used in backtesting/hyperopt
+            if self.dp and self.dp.runmode.value in ('backtest', 'hyperopt'):
+                sar = self.custom_info[self.MARKET_CAP_REFERENCE_PAIR]['sar_1w'].loc[current_time]['sar_1w']
+                tema = self.custom_info[self.MARKET_CAP_REFERENCE_PAIR]['tema_1w'].loc[current_time]['tema_1w']
+            # in live / dry-run, it'll be really the current time
+            else:
+                # but we can just use the last entry from an already analyzed dataframe instead
+                dataframe, last_updated = self.dp.get_analyzed_dataframe(pair=self.MARKET_CAP_REFERENCE_PAIR, timeframe=self.timeframe)
+                # WARNING
+                # only use .iat[-1] in live mode, not in backtesting/hyperopt
+                # otherwise you will look into the future
+                # see: https://www.freqtrade.io/en/latest/strategy-customization/#common-mistakes-when-developing-strategies
+                sar = dataframe['sar_1w'].iat[-1]
+                tema = dataframe['tema_1w'].iat[-1]
+
+            if tema is not None and sar is not None:
+                is_bull_market = tema > sar
+
+        # evaluate highest to lowest, so that highest possible stop is used
+        if current_profit > 5.00:
+            return -0.2
+        elif current_profit > 4.00:
+            return stoploss_from_open(3.50, current_profit)
+        elif current_profit > 3.50:
+            return stoploss_from_open(3.00, current_profit)
+        elif current_profit > 3.00:
+            return stoploss_from_open(2.50, current_profit)
+        elif current_profit > 2.50:
+            return stoploss_from_open(2.00, current_profit)
+        elif current_profit > 2.00:
+            return stoploss_from_open(1.50, current_profit)
+        elif current_profit > 1.50:
+            return stoploss_from_open(1.25, current_profit)
+        elif current_profit > 1.25:
+            return stoploss_from_open(1.00, current_profit)
+        elif current_profit > 1.00:
+            return stoploss_from_open(0.75, current_profit)
+        elif current_profit > 0.75:
+            return stoploss_from_open(0.50, current_profit)
+        elif current_profit > 0.50 and is_bull_market:
+            return stoploss_from_open(0.25, current_profit)
+        elif current_profit > 0.25 and is_bull_market:
+            return stoploss_from_open(0.05, current_profit)
+        elif -0.05 < current_profit < 0.05 and not is_bull_market:
+            if current_time - timedelta(hours=24*7) > trade.open_date_utc:
+                return -0.0125
+            elif current_time - timedelta(hours=24*5) > trade.open_date_utc:
+                return -0.025
+            elif current_time - timedelta(hours=24*3) > trade.open_date_utc:
+                return -0.05
+
+        # return maximum stoploss value, keeping current stoploss price unchanged
+        return -1
+
     def informative_pairs(self):
-        return []
+        # get access to all pairs available in whitelist.
+        pairs = self.dp.current_whitelist()
+
+        # Assign tf to each pair so they can be downloaded and cached for strategy.
+        informative_pairs = [(pair, '1w') for pair in pairs]
+
+        # Optionally Add additional "static" pairs
+        informative_pairs += [(self.MARKET_CAP_REFERENCE_PAIR, '1w')]
+
+        return informative_pairs
 
     def populate_indicators(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
+        if not self.dp:
+            # Don't do anything if DataProvider is not available.
+            return dataframe
+
+        inf_tf = '1w'
+
+        # Get the informative pair
+        informative = self.dp.get_pair_dataframe(pair=metadata['pair'], timeframe=inf_tf)
+
+        # Parabolic SAR
+        informative['sar'] = ta.SAR(dataframe)
+
+        # TEMA - Triple Exponential Moving Average
+        informative['tema'] = ta.TEMA(dataframe, timeperiod=9)
+
+        # Use the helper function merge_informative_pair to safely merge the pair
+        # Automatically renames the columns and merges a shorter timeframe dataframe and a longer timeframe informative pair
+        # use ffill to have the 1d value available in every row throughout the day.
+        # Without this, comparisons between columns of the original and the informative pair would only work once per day.
+        # Full documentation of this method, see below
+        dataframe = merge_informative_pair(dataframe, informative, self.timeframe, inf_tf, ffill=True)
+
         # RSI
         dataframe['rsi'] = ta.RSI(dataframe, timeperiod=14)
 
@@ -130,6 +228,16 @@ class StandardStrategy(IStrategy):
                 (dataframe['bb_upperband'].shift(5) - dataframe['bb_lowerband'].shift(5)) / dataframe['bb_middleband'].shift(5)
         )
 
+        # Check if the entry already exists
+        if not metadata['pair'] in self.custom_info:
+            # Create empty entry for this pair
+            self.custom_info[metadata['pair']] = {}
+
+        if self.dp.runmode.value in ('backtest', 'hyperopt'):
+            # add indicator mapped to correct DatetimeIndex to custom_info
+            self.custom_info[metadata['pair']]['sar_1w'] = dataframe[['date', 'sar_1w']].set_index('date')
+            self.custom_info[metadata['pair']]['tema_1w'] = dataframe[['date', 'tema_1w']].set_index('date')
+
         return dataframe
 
     def populate_buy_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
@@ -164,4 +272,5 @@ class StandardStrategy(IStrategy):
                     (dataframe['volume'] > 0)
             ),
             'sell'] = 1
+
         return dataframe
