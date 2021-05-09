@@ -120,4 +120,6 @@ fi
 
 cd ../../
 
+sudo chown -R ec2-user ./
+
 docker-compose up -d
